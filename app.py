@@ -45,6 +45,7 @@ page = st.sidebar.radio(
         "Japan Interest",
         "Difficulties & Alternatives",
         "Raw Data",
+        "Test",
     ],
 )
 
@@ -420,3 +421,119 @@ elif page == "Raw Data":
 
     st.markdown("### 📋 Column list")
     st.write(list(df_filtered.columns))
+
+# ------------------ Page: Test ------------------
+elif page == "Test":
+    st.title("🈵 Test")
+
+    def build_top_category_funnel(
+        df_source: pd.DataFrame,
+        columns: list,
+        column_labels: dict = None,
+        title: str = "Top-category engagement funnel",
+    ):
+        """
+        Build a funnel where each step filters on the most represented value
+        of a given column, in sequence.
+        
+        columns: list of column names to use as steps (in order)
+        column_labels: optional dict to display nicer labels for columns
+                    e.g. {"nationality": "Nationality", "age_group": "Age group"}
+        """
+
+        if column_labels is None:
+            column_labels = {}
+
+        # Starting point: entire filtered dataset
+        df_step = df_source.copy()
+
+        step_names = []
+        step_counts = []
+
+        # Step 0: all respondents
+        step_names.append("All respondents")
+        step_counts.append(len(df_step))
+
+        # Sequentially apply filters
+        for col in columns:
+            if col not in df_step.columns or df_step.empty:
+                # if column not present or no data left, we stop
+                break
+
+            vc = df_step[col].value_counts(dropna=True)
+
+            if vc.empty:
+                break
+
+            top_value = vc.idxmax()
+            df_step = df_step[df_step[col] == top_value]
+
+            # Pretty column label if provided
+            col_label = column_labels.get(col, col)
+
+            step_names.append(f"{col_label}: {top_value}")
+            step_counts.append(len(df_step))
+
+            if len(df_step) == 0:
+                break
+
+        # Create funnel only if we have at least 2 steps
+        if len(step_names) < 2:
+            st.info("Not enough data to build the funnel.")
+            return
+
+        fig = px.funnel(
+            x=step_counts,
+            y=step_names,
+            title=title,
+        )
+        fig.update_layout(xaxis_title="Number of respondents", yaxis_title="", showlegend=False)
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Optional: show summary
+        st.markdown("**Funnel breakdown:**")
+        for name, count in zip(step_names, step_counts):
+            st.write(f"- {name}: {count} respondents")
+
+    st.markdown("### 🎯 Japan Vacation")
+
+    funnel_columns = [
+        "Japan_vac_duration",
+        "Japan_budget_per_week",
+        "Japan_prefered_accomodation"
+    ]
+
+    funnel_labels = {
+        "Japan_vac_duration": "Vacation's Duration",
+        "Japan_budget_per_week": "Budget per Week",
+        "Japan_prefered_accomodation": "Preferred Accomodation",
+    }
+
+    build_top_category_funnel(
+        df_filtered,
+        columns=funnel_columns,
+        column_labels=funnel_labels,
+        title="Most common profile path based on current filters",
+    )
+
+    st.write("---")
+    st.markdown("### 🎯 Alternative Destination Vacation")
+
+    funnel_columns_alter = [
+        "alternative_destination",
+        "alt_dest_budget_per_week",
+        "alt_dest_prefered_accomodation",
+    ]
+
+    funnel_labels_alter = {
+        "Japan_vac_duration": "Vacation's Duration",
+        "Japan_budget_per_week": "Budget per Week",
+        "Japan_prefered_accomodation": "Preferred Accomodation",
+    }
+
+    build_top_category_funnel(
+        df_filtered,
+        columns=funnel_columns_alter,
+        column_labels=funnel_labels_alter,
+        title="Most common profile path based on current filters",
+    )
