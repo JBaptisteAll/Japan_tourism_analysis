@@ -52,31 +52,87 @@ page = st.sidebar.radio(
 filter_cols = {}
 
 if "nationality" in df.columns:
-    nat_list = ["All"] + get_unique_sorted(df["nationality"])
-    nationality_filter = st.sidebar.selectbox("Filter by nationality", nat_list)
+    nat_options = get_unique_sorted(df["nationality"])
+    nationality_filter = st.sidebar.multiselect(
+        "Filter by nationality",
+        options=nat_options
+    )
     filter_cols["nationality"] = nationality_filter
 
 if "country" in df.columns:
-    country_list = ["All"] + get_unique_sorted(df["country"])
-    country_filter = st.sidebar.selectbox("Filter by country of residence", country_list)
-    filter_cols["country"] = country_filter
+    country_list = get_unique_sorted(df["country"])
+    country_filter = st.sidebar.multiselect(
+        "Filter by country of residence",
+        options=country_list
+    )
+    filter_cols["country"] = country_filter    
 
 if "age_group" in df.columns:
-    age_list = ["All"] + get_unique_sorted(df["age_group"])
-    age_filter = st.sidebar.selectbox("Filter by age group", age_list)
+    age_options = get_unique_sorted(df["age_group"])
+    age_filter = st.sidebar.multiselect(
+        "Filter by age group",
+        options=age_options
+    )
     filter_cols["age_group"] = age_filter
 
+if "family_situation" in df.columns:
+    family_situation_list = get_unique_sorted(df["family_situation"])
+    family_situation_filter = st.sidebar.multiselect(
+        "Filter by family situation",
+        options=family_situation_list
+    )
+    filter_cols["family_situation"] = family_situation_filter 
+
+if "household_income_in_€" in df.columns:
+    income_options = get_unique_sorted(df["household_income_in_€"])
+    income_filter = st.sidebar.multiselect(
+        "Filter by household income in €",
+        options=income_options
+    )
+    filter_cols["household_income_in_€"] = income_filter
+
+if "travel_frequency" in df.columns:
+    travel_frequency_list = get_unique_sorted(df["travel_frequency"])
+    travel_frequency_filter = st.sidebar.multiselect(
+        "Filter by travel frequency",
+        options=travel_frequency_list
+    )
+    filter_cols["travel_frequency"] = travel_frequency_filter
+
 if "been_to_Japan" in df.columns:
-    japan_list = ["All"] + get_unique_sorted(df["been_to_Japan"])
-    japan_filter = st.sidebar.selectbox("Filter by Japan experience", japan_list)
-    filter_cols["been_to_Japan"] = japan_filter
+    japan_list = get_unique_sorted(df["been_to_Japan"])
+    japan_filter = st.sidebar.multiselect(
+        "Filter by Japan experience",
+        options=japan_list
+    )
+    filter_cols["been_to_Japan"] = japan_filter 
+
+
 
 
 def apply_filters(df_source: pd.DataFrame, filters: dict) -> pd.DataFrame:
     df_filtered = df_source.copy()
+
     for col, val in filters.items():
-        if val is not None and val != "All" and col in df_filtered.columns:
+        if col not in df_filtered.columns:
+            continue
+
+        # Case 1: multiselect → list of values
+        if isinstance(val, list):
+            # If user selected nothing: skip filter
+            if len(val) == 0:
+                continue
+            # If user selected all values: skip filter
+            if len(val) == df_filtered[col].nunique():
+                continue
+            df_filtered = df_filtered[df_filtered[col].isin(val)]
+
+        # Case 2: single-value filter (selectbox style)
+        else:
+            if val is None or val == "All":
+                continue
             df_filtered = df_filtered[df_filtered[col] == val]
+
     return df_filtered
 
 
@@ -85,13 +141,31 @@ df_filtered = apply_filters(df, filter_cols)
 st.sidebar.markdown("---")
 st.sidebar.write(f"📊 **Filtered respondents:** {len(df_filtered)}")
 
+# Ajout du lien externe dans le sidebar ou en bas de page
+st.sidebar.markdown("---")
+st.sidebar.markdown(
+    "[🌐 Visit My Portfolio](https://jbaptisteall.github.io/JeanBaptisteAllombert/index.html) ",
+    unsafe_allow_html=True
+)
+st.sidebar.markdown(
+    "[✉️ Contact Me](https://linktr.ee/jbcontactme) ",
+    unsafe_allow_html=True
+)
+
 # -----------------------------------------------------------
 # 4. Helper plotting functions
 # -----------------------------------------------------------
-def plot_bar_count(df_source: pd.DataFrame, col: str, title: str):
-    """Simple count bar chart."""
+def plot_bar_count(df_source: pd.DataFrame, col: str, title: str, order: list = None):
+    """Simple count bar chart with optional custom ordering."""
+    
     vc = df_source[col].value_counts(dropna=False).reset_index()
     vc.columns = [col, "count"]
+
+    # If a custom order is provided
+    if order:
+        vc[col] = pd.Categorical(vc[col], categories=order, ordered=True)
+        vc = vc.sort_values(col)
+
     fig = px.bar(
         vc,
         x=col,
@@ -123,7 +197,7 @@ def melt_multi_columns(df_source: pd.DataFrame, prefix: str, value_name: str) ->
 
 # ---------------------- Page: Overview ----------------------
 if page == "Overview":
-    st.title("🇯🇵 Japan Travel Survey – Overview")
+    st.title("Japan Travel Survey – Overview")
 
     col1, col2, col3, col4 = st.columns(4)
 
@@ -170,18 +244,34 @@ elif page == "Respondent Profile":
     # Age distribution
     st.markdown("### 🎂 Age group distribution")
     if "age_group" in df_filtered.columns:
-        plot_bar_count(df_filtered, "age_group", "Respondents by age group")
+        age_order = [
+            "18-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65 and over"
+        ]
+        plot_bar_count(df_filtered, "age_group", "Respondents by age group", order=age_order)
     else:
         st.info("Column 'age_group' not found in dataset.")
 
     # Income distribution
     st.markdown("### 💰 Household income distribution")
     if "household_income_in_€" in df_filtered.columns:
-        plot_bar_count(
-            df_filtered,
-            "household_income_in_€",
-            "Respondents by household income band",
-        )
+        income_order = [
+            "1500 and less",
+            "1500-1999",
+            "2000-2499",
+            "2500-2999",
+            "3000-3999",
+            "4000–4999",
+            "5000–5999",
+            "6000–6999",
+            "7000 and more",
+            "Unknown"
+        ]        
+        plot_bar_count(df_filtered, "household_income_in_€", "Respondents by household income band", order=income_order)
     else:
         st.info("Column 'household_income_in_€' not found in dataset.")
 
@@ -199,11 +289,14 @@ elif page == "Respondent Profile":
     # Travel frequency
     st.markdown("### ✈️ Travel frequency")
     if "travel_frequency" in df_filtered.columns:
-        plot_bar_count(
-            df_filtered,
-            "travel_frequency",
-            "Respondents by travel frequency",
-        )
+        travel_freq_order = [
+            "Several times a year",
+            "Once a year",
+            "Every 2–3 years",
+            "Once every 5 years or more",
+            "Never"
+        ]
+        plot_bar_count(df_filtered, "travel_frequency", "Respondents by travel frequency", order=travel_freq_order)
     else:
         st.info("Column 'travel_frequency' not found in dataset.")
 
