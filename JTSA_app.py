@@ -32,6 +32,18 @@ AXIS_LABELS = {
     "theme": "Theme",
 }
 
+REGION_COORDS = {
+    "Kanto":     {"lat": 36.0, "lon": 139.5},
+    "Kansai":    {"lat": 34.7, "lon": 135.5},
+    "Chūbu":     {"lat": 36.1, "lon": 137.7},
+    "Chūgoku":   {"lat": 34.5, "lon": 132.5},
+    "Shikoku":   {"lat": 33.8, "lon": 133.5},
+    "Tohoku":    {"lat": 39.7, "lon": 140.8},
+    "Hokkaido":  {"lat": 43.1, "lon": 142.8},
+    "Okinawa":   {"lat": 26.5, "lon": 127.9},
+    "Kyushu":    {"lat": 32.7, "lon": 130.7},
+}
+
 
 def get_axis_label(col: str) -> str:
     """Return a human-friendly axis label for a given column name."""
@@ -730,6 +742,7 @@ elif page == "Prefecture Wishlist":
             .sort_values("score", ascending=False)
         )
 
+        # --- Bar chart ---
         fig_pref = px.bar(
             pref_agg,
             x="prefecture",
@@ -746,6 +759,44 @@ elif page == "Prefecture Wishlist":
 
         st.markdown("### Top 10 prefectures")
         st.dataframe(pref_agg.head(10), use_container_width=True)
+
+        # --- Map of Japan with preferred regions ---
+        st.markdown("### Map of the most desired regions in Japan")
+
+        # Drop 'Unknown' and map coordinates
+        map_df = pref_agg[pref_agg["prefecture"] != "Unknown"].copy()
+
+        map_df["lat"] = map_df["prefecture"].map(
+            lambda x: REGION_COORDS.get(x, {}).get("lat")
+        )
+        map_df["lon"] = map_df["prefecture"].map(
+            lambda x: REGION_COORDS.get(x, {}).get("lon")
+        )
+
+        # Remove rows without coordinates
+        map_df = map_df.dropna(subset=["lat", "lon"])
+
+        if not map_df.empty:
+            fig_map = px.scatter_mapbox(
+                map_df,
+                lat="lat",
+                lon="lon",
+                size="score",
+                hover_name="prefecture",
+                hover_data={"lat": False, "lon": False, "score": True},
+                zoom=3.5,
+                center={"lat": 36.0, "lon": 138.0},
+                title="Most desired regions in Japan (weighted by preference score)",
+            )
+            fig_map.update_layout(
+                mapbox_style="open-street-map",
+                margin={"r": 0, "t": 40, "l": 0, "b": 0},
+            )
+            # Force marker color to blue (hex or rgb both work)
+            fig_map.update_traces(marker=dict(color="#a00e0e"))
+            st.plotly_chart(fig_map, use_container_width=True)
+        else:
+            st.info("No region coordinates available for the current filters.")
     else:
         st.info("No prefecture preference data available with current filters.")
 
