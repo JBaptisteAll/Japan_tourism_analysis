@@ -7,7 +7,7 @@ import numpy as np
 # 1. Page config
 # -----------------------------------------------------------
 st.set_page_config(
-    page_title="Japan Travel Survey - Advanced Dashboard",
+    page_title="Japan Travel Survey Analysis",
     layout="wide",
     page_icon="🇯🇵",
 )
@@ -321,7 +321,7 @@ def melt_multi_columns(df_source: pd.DataFrame, prefix: str, value_name: str) ->
 # -----------------------------------------------------------
 # 5. Sidebar navigation
 # -----------------------------------------------------------
-st.sidebar.title("📊 Japan Travel Survey")
+st.sidebar.title("🎌 Japan Travel Survey")
 
 page = st.sidebar.selectbox(
     "Select a page",
@@ -340,6 +340,11 @@ page = st.sidebar.selectbox(
 df_filtered = apply_sidebar_filters(df)
 
 st.sidebar.markdown(f"**Number of respondents after filters:** {len(df_filtered)}")
+
+normalize_global = st.sidebar.checkbox(
+    "Show percentages instead of counts",
+    value=True
+)
 
 # Ajout du lien externe dans le sidebar ou en bas de page
 st.sidebar.markdown("---")
@@ -364,7 +369,7 @@ st.sidebar.markdown(
 
 # ------------------------ Overview -------------------------
 if page == "Overview":
-    st.title("🇯🇵 Japan Travel Survey — Overview")
+    st.title("Japan Travel Survey — Overview")
 
     col1, col2, col3 = st.columns(3)
 
@@ -392,16 +397,16 @@ if page == "Overview":
             df_filtered,
             "age_group",
             "Respondents by age group",
-            normalize=True,
-            x_label="Age Group",
+            normalize=normalize_global,
+            x_label="",
         )
     with dcol2:
         plot_bar_count(
             df_filtered,
             "household_income_in_€",
             "Household income (€)",
-            normalize=True,
-            x_label="Household Income (€)",
+            normalize=normalize_global,
+            x_label="",
         )
 
     st.markdown("### Travel profile")
@@ -411,16 +416,16 @@ if page == "Overview":
             df_filtered,
             "travel_frequency",
             "Travel frequency",
-            normalize=True,
-            x_label="Travel Frequency",
+            normalize=normalize_global,
+            x_label="",
         )
     with tcol2:
         plot_bar_count(
             df_filtered,
             "been_to_Japan",
             "Japan experience",
-            normalize=True,
-            x_label="Japan Experience",
+            normalize=normalize_global,
+            x_label="",
         )
 
     st.markdown("### Interest in Japan (scores)")
@@ -453,7 +458,7 @@ if page == "Overview":
         text="avg_score",
     )
     fig_interest.update_layout(
-        xaxis_title="Interest Dimension",
+        xaxis_title="",
         yaxis_title="Average score (1–5)",
     )
     fig_interest.update_traces(texttemplate="%{text:.2f}", textposition="outside")
@@ -467,21 +472,21 @@ if page == "Overview":
             df_filtered,
             "Japan_vac_duration",
             "Desired trip duration in Japan",
-            normalize=True,
-            x_label="Trip Duration",
+            normalize=normalize_global,
+            x_label="",
         )
     with ecol2:
         plot_bar_count(
             df_filtered,
             "Japan_budget_per_week",
             "Preferred budget per week (Japan)",
-            normalize=True,
-            x_label="Budget per Week (€)",
+            normalize=normalize_global,
+            x_label="",
         )
 
 # ---------------- Segments & Cross-Analysis ----------------
 elif page == "Segments & Cross-Analysis":
-    st.title("👥 Segments & Cross-Analysis")
+    st.title("Segments & Cross-Analysis")
 
     st.markdown(
         "Use this page to explore how distributions change by segment "
@@ -522,7 +527,7 @@ elif page == "Segments & Cross-Analysis":
         index=0,
     )
 
-    normalize = st.checkbox("Show stacked percentages instead of counts", value=True)
+
 
     ctab = (
         df_filtered.groupby([group_col, target_col])
@@ -530,6 +535,7 @@ elif page == "Segments & Cross-Analysis":
         .reset_index(name="count")
     )
 
+    normalize = normalize_global
     if normalize:
         total_per_group = ctab.groupby(group_col)["count"].transform("sum")
         ctab["pct"] = ctab["count"] / total_per_group * 100
@@ -596,7 +602,7 @@ elif page == "Segments & Cross-Analysis":
 
 # ---------------- Difficulties & Barriers -------------------
 elif page == "Difficulties & Barriers":
-    st.title("🚧 Difficulties & Barriers")
+    st.title("Difficulties & Barriers")
 
     st.markdown("This page focuses on difficulties for Japan vs alternative destinations.")
 
@@ -701,10 +707,10 @@ elif page == "Prefecture Wishlist":
     )
 
     rank_weights = {
-        "most_wanted_pref_to_visit_1": 5,
-        "most_wanted_pref_to_visit_2": 4,
-        "most_wanted_pref_to_visit_3": 3,
-        "most_wanted_pref_to_visit_4": 2,
+        "most_wanted_pref_to_visit_1": 1,
+        "most_wanted_pref_to_visit_2": 1,
+        "most_wanted_pref_to_visit_3": 1,
+        "most_wanted_pref_to_visit_4": 1,
         "most_wanted_pref_to_visit_5": 1,
     }
 
@@ -745,7 +751,7 @@ elif page == "Prefecture Wishlist":
 
 # --------------------- Custom Funnel ------------------------
 elif page == "Custom Funnel":
-    st.title("🧭 Custom Funnel")
+    st.title("Custom Funnel")
 
     st.markdown(
         "Build a custom funnel based on any combination of categorical columns. "
@@ -757,19 +763,26 @@ elif page == "Custom Funnel":
         "Japan_vac_duration",
         "Japan_budget_per_week",
         "Japan_prefered_accomodation",
+        "most_influencial_reason_to_choose_dest",
+        
         "alternative_destination",
         "alt_dest_budget_per_week",
         "alt_dest_prefered_accomodation",
+        "alt_dest_main_reason",
+        "alt_dest_transportation",
+
         "travel_frequency",
         "been_to_Japan",
         "household_income_in_€",
         "age_group",
+        "booking_trip_channel",
+        "trip_prep",
     ]
 
     selected_funnel_cols = st.multiselect(
         "Choose funnel steps (order matters)",
         options=funnel_cols_candidates,
-        default=["Japan_vac_duration", "Japan_budget_per_week"],
+        default=["booking_trip_channel", "trip_prep"],
     )
 
     funnel_config = {}
@@ -875,7 +888,7 @@ elif page == "Custom Funnel":
 
 # ---------------------- Text Insights -----------------------
 elif page == "Text Insights":
-    st.title("✍️ Text Insights")
+    st.title("Text Insights")
 
     st.markdown(
         "Basic text analysis on the open-ended question "
@@ -893,13 +906,12 @@ elif page == "Text Insights":
         all_text = " ".join(texts).lower()
 
         keywords = {
-            "price": ["price", "expensive", "cost"],
-            "language": ["language", "english", "translation"],
-            "visa": ["visa"],
-            "information": ["information", "info", "guide", "planning"],
-            "crowd": ["crowded", "tourists", "overtourism"],
-            "transport": ["transport", "train", "shinkansen", "flight"],
-            "culture": ["culture", "cultural", "tradition"],
+            "price": ["price", "expensive", "cost", "budget", "prix", "moins cher", "offres", "tarifs", "coût", "abordables", "chère"],
+            "language": ["language", "english", "translation", "anglais", "communiquer", "français", "langue", "anglaise", "étrangers"],
+            "information": ["guide", "planning", "informée"],
+            "crowd": ["crowded", "tourists", "overtourism", "moins de monde", "moins à la mode", "moins touristique"],
+            "transport": ["transport", "train", "shinkansen", "flight", "métro", "vols"],
+            "Do NOT Change": ["rien de plus", "attractif", "m’attirent", "rien", "sur la to do list", "perfect"]
         }
 
         keyword_counts = {}
@@ -933,7 +945,7 @@ elif page == "Text Insights":
 
 # -------------------------- Raw Data ------------------------
 elif page == "Raw Data":
-    st.title("📄 Raw Data")
+    st.title("Raw Data")
 
     st.markdown("### 📊 Filtered dataset preview")
     st.dataframe(df_filtered)
