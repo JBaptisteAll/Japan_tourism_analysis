@@ -370,7 +370,7 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 st.sidebar.markdown(
-    "[✉️ Contact Me](https://linktr.ee/jbcontactme) ",
+    "[✉️ Contact Me](https://linktr.ee/jb_contactme) ",
     unsafe_allow_html=True
 )
 
@@ -757,8 +757,7 @@ elif page == "Prefecture Wishlist":
         )
         st.plotly_chart(fig_pref, use_container_width=True)
 
-        st.markdown("### Top 10 prefectures")
-        st.dataframe(pref_agg.head(10), use_container_width=True)
+
 
         # --- Map of Japan with preferred regions ---
         st.markdown("### Map of the most desired regions in Japan")
@@ -793,7 +792,7 @@ elif page == "Prefecture Wishlist":
                 margin={"r": 0, "t": 40, "l": 0, "b": 0},
             )
             # Force marker color to blue (hex or rgb both work)
-            fig_map.update_traces(marker=dict(color="#a00e0e"))
+            fig_map.update_traces(marker=dict(color="#bd0404"))
             st.plotly_chart(fig_map, use_container_width=True)
         else:
             st.info("No region coordinates available for the current filters.")
