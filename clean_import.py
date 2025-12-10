@@ -583,14 +583,14 @@ df_clean["Japan_vac_duration"] = (df_clean["Japan_vac_duration"]
 pref_cols = ["most_wanted_pref_to_visit_1", "most_wanted_pref_to_visit_2", "most_wanted_pref_to_visit_3",
         "most_wanted_pref_to_visit_4", "most_wanted_pref_to_visit_5"]
 df_clean[pref_cols] = (df_clean[pref_cols]
-                            .applymap(lambda x: clean_most_wanted_pref_to_visit.get(x, x)))
+                            .map(lambda x: clean_most_wanted_pref_to_visit.get(x, x)))
 
 rating_cols = ['rating_interest_culture_and_history', 'rating_interest_food',
        'rating_interest_nature_hiking', 'rating_interest_shopping_and_techno',
        'rating_interest_events_and_festivals', 'rating_interest_wellness',
        'rating_interest_theme_park']
 df_clean[rating_cols] = (df_clean[rating_cols]
-                            .applymap(lambda x: clean_rating_japan.get(x, x)))
+                            .map(lambda x: clean_rating_japan.get(x, x)))
 
 df_clean["Japan_budget_per_week"] = (df_clean["Japan_budget_per_week"]
                             .map(clean_budget_japan)
@@ -604,8 +604,8 @@ df_clean["Japan_prefered_accomodation"] = (df_clean["Japan_prefered_accomodation
 cols = ["Japan_most_difficulties_1", "Japan_most_difficulties_2", "Japan_most_difficulties_3",
         "Japan_most_difficulties_4", "Japan_most_difficulties_5"]
 df_clean[cols] = (df_clean[cols]
-                            .applymap(normalize_text)
-                            .applymap(lambda x: clean_most_difficulties.get(x, x)))
+                            .map(normalize_text)
+                            .map(lambda x: clean_most_difficulties.get(x, x)))
 
 df_clean["alternative_destination"] = (df_clean["alternative_destination"]
                             .map(normalize_text)
@@ -648,8 +648,8 @@ df_clean["most_influencial_reason_to_choose_dest"] = (df_clean["most_influencial
 cols = ["alt_dest_most_difficulties_1", "alt_dest_most_difficulties_2", "alt_dest_most_difficulties_3",
         "alt_dest_most_difficulties_4", "alt_dest_most_difficulties_5"]
 df_clean[cols] = (df_clean[cols]
-                            .applymap(normalize_text)
-                            .applymap(lambda x: clean_alt_dest_most_difficulties.get(x, x)))
+                            .map(normalize_text)
+                            .map(lambda x: clean_alt_dest_most_difficulties.get(x, x)))
 
 
 # 9. Delete unnecessary Columns
@@ -657,4 +657,4 @@ df_clean = df_clean.drop(columns= ["most_wanted_pref_to_visit", "Japan_most_diff
 
 
 # 10. Save CSV file
-df_clean.to_csv("df_clean.csv", index=False)
+df_clean.to_csv("data_processed/df_clean.csv", index=False)
