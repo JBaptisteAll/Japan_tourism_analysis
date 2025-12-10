@@ -367,26 +367,13 @@ st.sidebar.markdown(
 )
 
 # Link at the bottom
+st.sidebar.markdown("---")
 st.sidebar.markdown(
-    """
-    <div style="
-        position: fixed;
-        bottom: 30px;
-        width: 250px;
-    ">
-        <hr>
-        <p style="margin:0;">
-            <a href='https://jbaptisteall.github.io/JeanBaptisteAllombert/index.html' target='_blank'>
-                🌐 Visit My Portfolio
-            </a>
-        </p>
-        <p style="margin:0;">
-            <a href='https://linktr.ee/jb_contactme' target='_blank'>
-                ✉️ Contact Me
-            </a>
-        </p>
-    </div>
-    """,
+    "[🌐 Visit My Portfolio](https://jbaptisteall.github.io/JeanBaptisteAllombert/index.html) ",
+    unsafe_allow_html=True
+)
+st.sidebar.markdown(
+    "[✉️ Contact Me](https://linktr.ee/jb_contactme) ",
     unsafe_allow_html=True
 )
 
