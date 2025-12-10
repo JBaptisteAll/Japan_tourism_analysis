@@ -56,7 +56,7 @@ def get_axis_label(col: str) -> str:
 # 3. Data loading & preparation
 # -----------------------------------------------------------
 
-@st.cache_data
+@st.cache_data(ttl=15*24*3600) #Update every 15 days
 def load_data(path: str = "df_clean.csv") -> pd.DataFrame:
     df = pd.read_csv(path)
 
@@ -351,26 +351,45 @@ page = st.sidebar.selectbox(
 # Apply filters once for all pages
 df_filtered = apply_sidebar_filters(df)
 
-st.sidebar.markdown(f"**Number of respondents after filters:** {len(df_filtered)}")
-
 normalize_global = st.sidebar.checkbox(
     "Show percentages instead of counts",
     value=True
 )
 
-# Ajout du lien externe dans le sidebar ou en bas de page
+st.sidebar.markdown("---")
+st.sidebar.markdown(f"Number of respondents after filters: **{len(df_filtered)}**")
+
+# Link to the Survey
 st.sidebar.markdown("---")
 st.sidebar.markdown(
     "[📃 **Take the Survey**](https://linktr.ee/JapanAnalysis) ",
     unsafe_allow_html=True
 )
-st.sidebar.markdown("---")
+
+# --- Sapce inside the sidebar ---
+st.sidebar.markdown("<div style='height: 200px;'></div>", unsafe_allow_html=True)
+
+# Link at the bottom
 st.sidebar.markdown(
-    "[🌐 Visit My Portfolio](https://jbaptisteall.github.io/JeanBaptisteAllombert/index.html) ",
-    unsafe_allow_html=True
-)
-st.sidebar.markdown(
-    "[✉️ Contact Me](https://linktr.ee/jb_contactme) ",
+    """
+    <div style="
+        position: fixed;
+        bottom: 30px;
+        width: 250px;
+    ">
+        <hr>
+        <p style="margin:0;">
+            <a href='https://jbaptisteall.github.io/JeanBaptisteAllombert/index.html' target='_blank'>
+                🌐 Visit My Portfolio
+            </a>
+        </p>
+        <p style="margin:0;">
+            <a href='https://linktr.ee/jb_contactme' target='_blank'>
+                ✉️ Contact Me
+            </a>
+        </p>
+    </div>
+    """,
     unsafe_allow_html=True
 )
 
@@ -715,7 +734,6 @@ elif page == "Prefecture Wishlist":
 
     st.markdown(
         "Ranking of Japanese prefectures based on weighted preferences "
-        "(1st choice = 5 pts, 2nd = 4 pts, ..., 5th = 1 pt)."
     )
 
     rank_weights = {
