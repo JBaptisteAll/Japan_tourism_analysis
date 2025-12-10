@@ -9,7 +9,7 @@ import numpy as np
 st.set_page_config(
     page_title="Japan Travel Survey Analysis",
     layout="wide",
-    page_icon="🇯🇵",
+    page_icon="🈸",
 )
 
 # -----------------------------------------------------------
