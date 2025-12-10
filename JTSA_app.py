@@ -366,6 +366,9 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
+# --- Sapce inside the sidebar ---
+st.sidebar.markdown("<div style='height: 200px;'></div>", unsafe_allow_html=True)
+
 # Link at the bottom
 st.sidebar.markdown(
     """
