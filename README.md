@@ -45,7 +45,7 @@ flowchart LR
     D --> E[data_processed/df_clean.csv]
 
     E --> F[Streamlit App]
-    F -->|Download CSV / Filtered Data| G[End Users (360, stakeholders)]
+    F --> G[End Users / Stakeholders]
 
     H[GitHub Actions (cron)] --> D
 ```
