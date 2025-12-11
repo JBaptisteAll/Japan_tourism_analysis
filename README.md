@@ -77,21 +77,29 @@ flowchart LR
 ## 4. Repository Structure
 
 ```
-.
-├── .devcontainer/
-│   └── devcontainer.json        
-├── .github/workflows
-│   └── run_clean_import.yml     
+├── .devcontainer/                  # Dev environment configuration (optional)
+│   └── devcontainer.json
+│
+├── .github/
+│   └── workflows/
+│       └── run_clean_import.yml    # GitHub Actions pipeline (bi-monthly)
+│    
 ├── Archives/
-│   └── 01_clean.ipynb           # Initial cleaning experiments
+│   └── 01_clean.ipynb              # Early cleaning experiments (not used in prod)
+│
 ├── Assets/
-│   ├── regiions_of_japan.png    # potentially used for .md
+│   ├── regions_of_japan.png        # Image assets for README / dashboard
+│
 ├── data_processed/
-│   ├── df_clean.csv             # clean csv for streamlit
-├── clean_import.py              # Python script
-├── JTSA_app.py                  # Streamlit app
-├── README.md                    # This file
-└── requirements.txt             # Python dependencies
+│   ├── df_clean.csv                # Final cleaned dataset consumed by Streamlit
+│
+├── clean_import.py                 # Main ETL script (cleaning + standardization)
+│
+├── JTSA_app.py                     # Streamlit dashboard application
+│
+├── README.md                       # Documentation (technical)
+│
+└── requirements.txt                # Python dependencies
 ```
 
 ## 5. Data Processing & Cleaning
@@ -101,7 +109,11 @@ flowchart LR
     - A ``fileId`` (unique ID of the Google Sheet file).
     - A ``gid`` (ID of the specific worksheet/tab).
 
-- The credentials and configuration (fileId, gid, API key or service account) are stored as environment variables or in a ``.env`` file (ignored by Git).
+In this project, the Google Sheet reference (fileId + gid) is stored directly inside the `clean_import.py` script for simplicity.  
+No environment variables are required for data ingestion, since only public read-only data is fetched.
+
+*__Note: The Google Sheet URL is stored directly in the script because the dataset contains no sensitive or private information.__*
+
 
 ### 5.2 Cleaning Rules Module
 
@@ -138,40 +150,19 @@ def clean_age (age):
     else:
         return "18 and less"
 
-def smart_split(val):
-    if pd.isna(val):
-        return[]
-    s = str(val)
-    parts = re.split(r',(?![^()]*\))', s)
-    parts = [p.strip() for p in parts if p.strip()]
-    return parts
-
 def list_to_fixed_cols_prefs(lst, k=MAX_CHOICES):
     lst = (lst + [np.nan]*k) [:k]
     return pd.Series(lst, index=[f"most_wanted_pref_to_visit_{i+1}" for i in range(k)])
 
 ```
-*Renaming columns*
-```python
-df_clean = df_clean.rename(columns={
-    "Quel est votre nationalité?": "nationality",
-    "  Dans quel pays résidez-vous actuellement ?  ": "country",
 
-    ...
-
-    "Qu’est-ce qui rendrait le Japon plus attractif comme destination pour vous ?  ": "recomendation_to_improve_attractiveness"
-})
-```
 *Mapping with and without normalization*
 ```python
 #Japan_prefered_accomodation (normalize_text) 
 clean_japan_accomodation = {
 
     "hotel classique (3 4 etoiles)": "Standard hotel (3–4 stars)",
-    "hotel haut de gamme / luxe (5 etoiles)": "Luxury / high-end hotel (5 stars)",
-    "ryokan (auberge traditionnelle)": "Ryokan (traditional Japanese inn)",
-    "capsule hotel": "Capsule hotel",
-    "airbnb / logement chez l’habitant": "Airbnb / homestay",
+    ...
     "hostel/ auberge de jeunesse": "Hostel"
 }
 
@@ -179,9 +170,7 @@ clean_japan_accomodation = {
 clean_rating_japan = {
 
     "Pas du tout important": "Not important at all",
-    "Peu important": "Slightly important",
-    "Assez important": "Moderately important",
-    "Très important": "Very important",
+    ...
     "Essentiel": "Essential",
 }
 ```
@@ -267,19 +256,26 @@ The workflow ``run_clean_import.yml`` is responsible for:
 
 Example structure:
 ```yml
-name: Process Survey Data
+name: Auto update cleaned data
 
 on:
   schedule:
-    - cron: "0 6 1,15 * *"  # 1st and 15th of each month at 05:00 UTC
-  workflow_dispatch:        # manual trigger
+    - cron: "0 6 1,15 * *"   # 1er & 15 each month at 06:00 UTC
+  workflow_dispatch:
+
+# Give permission to write on to the repo
+permissions:
+  contents: write
 
 jobs:
-  process-data:
+  run-cleaning-script:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: main          # make sur we are on the correct Branch
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -287,21 +283,26 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          pip install -r requirements.txt
+          pip install --upgrade pip
 
-      - name: Run processing script
-        env:
-          GOOGLE_SHEET_EXPORT_URL: ${{ secrets.GOOGLE_SHEET_EXPORT_URL }}
-        run: python -m src.process_data
+      - name: Run cleaning script
+        run: |
+          python clean_import.py
 
-      # Optionally commit and push updated CSV file
-      # - name: Commit and push changes
-      #   run: |
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
-      #     git add data_processed/df_clean.csv
-      #     git commit -m "Update processed survey data"
-      #     git push
+      - name: Commit and push updated CSV
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add data_processed/df_clean.csv
+
+          # Don't crash if nothing to commit
+          git commit -m "Auto-update df_clean.csv via GitHub Actions" || echo "No changes to commit"
+
+          # Push on to main
+          git push origin HEAD:main
 ```
 
 ---
@@ -317,5 +318,30 @@ Planned or possible extensions:
 
 --- 
 
-## 9. Contact
+## 9. Installation & Local Execution
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/JBaptisteAll/Japan_tourism_analysis.git
+cd Japan_tourism_analysis
+
+# 2. Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# 3. Run the ETL script (fetch + clean + export)
+python clean_import.py
+
+# 4. Launch the Streamlit dashboard
+streamlit run JTSA_app.py
+```
+
+Notes
+- ``clean_import.py`` retrieves the raw Google Sheet, cleans the dataset, and saves the processed version to ``data_processed/df_clean.csv``.
+- The Streamlit app automatically loads the processed dataset and uses caching for performance.
+- No environment variables are required, as the Google Sheet reference is stored directly in the script.
+
+---
+
+## 10. Contact
 For questions or collaboration, please contact the project owner via GitHub or LinkedIn.
