@@ -35,19 +35,15 @@ Technically, this project demonstrates:
 
 ```mermaid
 flowchart LR
-    A[Google Forms FR] --> B[Google Sheet FR]
-    A2[Google Forms EN] --> B2[Google Sheet EN]
-
-    B --> C[Combined Sheet via IMPORTRANGE]
-    B2 --> C
-
-    C --> D[Python Processing Script]
-    D --> E[data_processed/df_clean.csv]
-
-    E --> F[Streamlit App]
-    F --> G[End Users / Stakeholders]
-
-    H[GitHub Actions (cron)] --> D
+  A[Google Forms FR] --> B[Google Sheet FR]
+  A2[Google Forms EN] --> B2[Google Sheet EN]
+  B --> C[Combined Sheet via IMPORTRANGE]
+  B2 --> C
+  C --> D[Python Processing Script]
+  D --> E[data_processed/df_clean.csv]
+  E --> F[Streamlit App]
+  F --> G[End Users / Stakeholders]
+  H[GitHub Actions cron] --> D
 ```
 
 ### Key ideas:
