@@ -56,7 +56,7 @@ def get_axis_label(col: str) -> str:
 # 3. Data loading & preparation
 # -----------------------------------------------------------
 
-#@st.cache_data(ttl=15*24*3600) #Update every 15 days
+@st.cache_data(ttl=3 * 24 * 3600)  # 3 days
 def load_data(path: str = "data_processed/df_clean.csv") -> pd.DataFrame: 
     df = pd.read_csv(path)
 
