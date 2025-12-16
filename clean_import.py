@@ -43,7 +43,7 @@ def normalize_text(s):
             .replace("ô", "o")
             .replace("ù", "u").replace("û", "u").replace("ū", "u")
             .replace("ç", "c")
-            .replace("$", "").replace("€", "").replace("-"," "))
+            .replace("$", "").replace("€", "").replace("-"," ").replace("–"," "))
 
 def clean_age (age):
     if pd.isna(age):
@@ -226,7 +226,7 @@ clean_travel_frequency = {
     
     "Jamais": "Never",
     "Une fois tous les 5 ans ou plus": "Once every 5 years or more",
-    "Tous les 2-3 ans": "Every 2–3 years",
+    "Tous les 2–3 ans": "Every 2–3 years",
     "Une fois par an": "Once a year",
     "Plusieurs fois par an": "Several times a year",
 }
