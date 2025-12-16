@@ -518,6 +518,13 @@ elif page == "Segments & Cross-Analysis":
         "country",
         "nationality",
         "family_situation",
+        "Japan_vac_duration",
+        "Japan_budget_per_week",
+        "Japan_prefered_accomodation",
+        "alternative_destination",
+        "alt_dest_budget_per_week",
+        "alt_dest_prefered_accomodation",
+        "most_influencial_reason_to_choose_dest",        
     ]
 
     group_col = st.selectbox(
@@ -527,6 +534,15 @@ elif page == "Segments & Cross-Analysis":
     )
 
     target_cols = [
+        "age_group",
+        "household_income_in_€",
+        "travel_frequency",
+        "been_to_Japan",
+        "Japan_vac_duration",
+        "Japan_budget_per_week",
+        "country",
+        "nationality",
+        "family_situation",
         "Japan_vac_duration",
         "Japan_budget_per_week",
         "Japan_prefered_accomodation",
