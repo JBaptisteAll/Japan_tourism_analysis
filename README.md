@@ -77,29 +77,30 @@ flowchart LR
 ## 4. Repository Structure
 
 ```
-├── .devcontainer/                  # Dev environment configuration (optional)
+├── .devcontainer/                                        # Dev environment configuration (optional)
 │   └── devcontainer.json
 │
 ├── .github/
 │   └── workflows/
-│       └── run_clean_import.yml    # GitHub Actions pipeline (bi-monthly)
+│       └── run_clean_import.yml                          # GitHub Actions pipeline (bi-monthly)
 │    
 ├── Archives/
-│   └── 01_clean.ipynb              # Early cleaning experiments (not used in prod)
+│   ├── 01_clean.ipynb                                    # Early cleaning experiments (not used in prod)
+│   └── Japan Travel Insights – Strategic Analysis.pdf    # Full strategic analysis (PDF deliverable)
 │
 ├── Assets/
-│   ├── regions_of_japan.png        # Image assets for README / dashboard
+│   └── regions_of_japan.png                              # Image assets for README / dashboard
 │
 ├── data_processed/
-│   ├── df_clean.csv                # Final cleaned dataset consumed by Streamlit
+│   └── df_clean.csv                                      # Final cleaned dataset consumed by Streamlit
 │
-├── clean_import.py                 # Main ETL script (cleaning + standardization)
+├── clean_import.py                                       # Main ETL script (cleaning + standardization)
 │
-├── JTSA_app.py                     # Streamlit dashboard application
+├── JTSA_app.py                                           # Streamlit dashboard application
 │
-├── README.md                       # Documentation (technical)
+├── README.md                                             # Documentation (technical)
 │
-└── requirements.txt                # Python dependencies
+└── requirements.txt                                      # Python dependencies
 ```
 
 ## 5. Data Processing & Cleaning
@@ -231,17 +232,23 @@ Key features:
 
 ### 6.1 Data Loading & Caching
 
-Because the dataset only changes twice a month, the app uses a cache with a long TTL:
+- Context-aware choice :  
+At the current scale of the project, the dataset remains relatively small and does not create any noticeable performance bottleneck during app startup or interactions.
+
+- Caching strategy (disabled in production) :  
+A caching mechanism using st.cache_data was implemented and tested during development, but is currently commented out in production as it does not provide meaningful performance gains at this stage.
+
+- Future-ready configuration :  
+If the dataset grows or refresh frequency increases, caching can be safely re-enabled with a short TTL aligned with the data refresh cycle.
 
 ```python
-@st.cache_data(ttl=15*24*3600) #Update every 15 days
+@st.cache_data(ttl=3 * 24 * 3600)  # 3 days
 def load_data(path: str = "data_processed/df_clean.csv") -> pd.DataFrame: 
     df = pd.read_csv(path)
 ```
 
-This ensures:
-- Fast app startup and interactions.
-- Automatic cache refresh every 15 days, aligned with the GitHub Actions schedule.
+TTL rationale :  
+A 3-day TTL was chosen as a reasonable balance between freshness and performance, and is better aligned with the current GitHub Actions update cadence than a longer cache duration (e.g. 15 days).
 
 ---
 
@@ -315,6 +322,7 @@ Planned or possible extensions:
 - Generate PDF reports based on user-selected charts.
 - Implement segmentation / clustering of traveller profiles to support more targeted recommendations for tourism strategies.
 - Add unit tests for key cleaning functions (e.g. country and age mappings).
+- Add a decision-oriented KPI dashboard, including intent-based scoring and lifecycle-aware metrics (e.g. traveler intent score, regional diversification index).
 
 --- 
 
