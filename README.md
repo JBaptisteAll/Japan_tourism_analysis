@@ -86,6 +86,7 @@ flowchart LR
 │    
 ├── Archives/
 │   ├── 01_clean.ipynb                                    # Early cleaning experiments (not used in prod)
+│   ├── 02_graphs_li.ipynb                                # Exploratory charts used for presentation / portfolio
 │   └── Japan Travel Insights – Strategic Analysis.pdf    # Full strategic analysis (PDF deliverable)
 │
 ├── Assets/
